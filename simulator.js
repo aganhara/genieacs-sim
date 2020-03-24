@@ -20,6 +20,7 @@ let requestOptions = null;
 let device = null;
 let httpAgent = null;
 let basicAuth;
+let headerCpeId = null;
 
 
 function createSoapDocument(id, body) {
@@ -46,6 +47,10 @@ function sendRequest(xml, callback) {
   headers["Content-Length"] = body.length;
   headers["Content-Type"] = "text/xml; charset=\"utf-8\"";
   headers["Authorization"]= basicAuth;
+
+  if (headerCpeId) {
+    headers["cpe-id"] = headerCpeId;
+  }
 
   if (device._cookie)
     headers["Cookie"] = device._cookie;
@@ -258,7 +263,7 @@ function listenForConnectionRequests(serialNumber, acsUrlOptions, callback) {
   });
 }
 
-function start(dataModel, serialNumber, acsUrl) {
+function start(dataModel, serialNumber, acsUrl, cpeId) {
   device = dataModel;
 
   if (device["Device.DeviceInfo.SerialNumber"])
@@ -277,6 +282,7 @@ function start(dataModel, serialNumber, acsUrl) {
   }
 
   basicAuth = "Basic " + Buffer.from(`${username}:${password}`).toString("base64");
+  headerCpeId = cpeId;
 
   requestOptions = require("url").parse(acsUrl);
   http = require(requestOptions.protocol.slice(0, -1));

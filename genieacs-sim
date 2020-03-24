@@ -9,8 +9,9 @@ if (!cluster.isMaster) {
   const acsUrl = process.env["ACS_URL"];
   const dataModel = process.env["DATA_MODEL"];
   const serialNumber = process.env["SERIAL_NUMBER"];
+  const cpeId = process.env["CPE_ID"];
 
-  simulator.start(require(dataModel), serialNumber, acsUrl);
+  simulator.start(require(dataModel), serialNumber, acsUrl, cpeId);
   return;
 }
 
@@ -20,6 +21,16 @@ function resolvePath(p) {
   return require("path").resolve(process.cwd(), p);
 }
 
+function resolveSerialNumber(sn) {
+  console.log(`Serial Number: ${sn}`);
+  return sn;
+}
+
+function resolveCpeId(cpeId) {
+  console.log(`CPE id: ${cpeId}`);
+  return cpeId;
+}
+
 const program = require("commander")
   .version(pkg.version)
   .description(pkg.description)
@@ -27,7 +38,8 @@ const program = require("commander")
   .option("-m, --data-model [filename]", "Data model template", resolvePath, "./data_model_202BC1-BM632w-8KA8WA1151100043.json")
   .option("-p, --processes [count]", "Number of devices to simulate (default: 1)", parseFloat, 1)
   .option("-w, --wait [milliseconds]", "Waiting period between process spawning (default: 1000)", parseFloat, 1000)
-  .option("-s, --serial [offset]", "Serial number offset (default: 0)", parseFloat, 0)
+  .option("-s, --serial [offset]", "Serial number offset (default: 0000000)", resolveSerialNumber, "000000")
+  .option("-c, --cpe-id [ip]", "Simulate a known CPE on network (default: empty)", resolveCpeId)
   .parse(process.argv);
 
 if (!/^(http|https):\/\//.test(program.acsUrl)) {
@@ -51,9 +63,10 @@ cluster.on("exit", function(worker, code, signal) {
 for (let i = 0; i < program.processes; ++ i) {
   setTimeout(function() {
     let env = {
-      "SERIAL_NUMBER": `00000${program.serial + i}`.slice(-6),
+      "SERIAL_NUMBER": program.serial,
       "ACS_URL": program.acsUrl,
       "DATA_MODEL": program.dataModel,
+      "CPE_ID": program.cpeId,
     };
     let worker = cluster.fork(env);
     worker.env = env;
