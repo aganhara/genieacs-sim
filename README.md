@@ -4,7 +4,7 @@ TR-069 client simulator for GenieACS.
 
 To install:
 
-    git clone git@github.com:aganhara/genieacs-sim.git
+    git clone https://github.com/aganhara/genieacs-sim.git
     cd genieacs-sim
     npm install
 
